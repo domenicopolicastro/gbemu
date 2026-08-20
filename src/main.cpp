@@ -4,8 +4,10 @@
 #include <vector>
 #include <cstdint>
 
-bool isLogoValid(std::vector<uint8_t>& rom);
-bool isHeaderChecksumValid(std::vector<uint8_t>& rom);
+#include "Bus.h"
+
+bool isLogoValid(const std::vector<uint8_t>& rom);
+bool isHeaderChecksumValid(const std::vector<uint8_t>& rom);
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
@@ -56,6 +58,12 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "Invalid header checksum\n");
         return 1;
     }
+
+    Bus bus(rom);
+    std::printf("ROM read by bus: %02X\n", bus.read(0x0100));
+
+    bus.write(0x8000, 0x11);
+    std::printf("VRAM value obtained by write: %02X\n", bus.read(0x8000));
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::printf("SDL_Init error: %s\n", SDL_GetError());
@@ -111,7 +119,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-bool isLogoValid(std::vector<uint8_t>& rom) {
+bool isLogoValid(const std::vector<uint8_t>& rom) {
     const uint8_t nintendoLogo[] = {
         0xCE, 0xED, 0x66, 0x66, 0xCC, 0x0D, 0x00, 0x0B,
         0x03, 0x73, 0x00, 0x83, 0x00, 0x0C, 0x00, 0x0D,
@@ -126,8 +134,8 @@ bool isLogoValid(std::vector<uint8_t>& rom) {
     }
     return true;
 }
-bool isHeaderChecksumValid(std::vector<uint8_t>& rom) {
-    uint8_t checksum;
+bool isHeaderChecksumValid(const std::vector<uint8_t>& rom) {
+    uint8_t checksum = 0;
     for (std::size_t i = 0x0134; i <= 0x014C; i++) {
         checksum = checksum - rom[i] - 1;
     }
