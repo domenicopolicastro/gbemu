@@ -5,6 +5,7 @@
 #include <cstdint>
 
 #include "Bus.h"
+#include "Cpu.h"
 
 bool isLogoValid(const std::vector<uint8_t>& rom);
 bool isHeaderChecksumValid(const std::vector<uint8_t>& rom);
@@ -60,10 +61,21 @@ int main(int argc, char* argv[]) {
     }
 
     Bus bus(rom);
-    std::printf("ROM read by bus: %02X\n", bus.read(0x0100));
+    
 
-    bus.write(0x8000, 0x11);
-    std::printf("VRAM value obtained by write: %02X\n", bus.read(0x8000));
+    // Test step
+    std::vector<uint8_t> testRom(0x8000, 0);
+    testRom[0x0100] = 0x3E;
+    testRom[0x0101] = 0x42;
+
+    Bus testBus(testRom);
+    Cpu cpu(testBus);
+    std::printf("PC before step: %04X\n", cpu.getPC());
+    std::printf("A register before step: %02X\n", cpu.getA());
+    int cycles = cpu.step();
+    std::printf("PC after step: %04X\n", cpu.getPC());
+    std::printf("A register after step: %02X\n", cpu.getA());
+    std::printf("Cycles: %d\n", cycles);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::printf("SDL_Init error: %s\n", SDL_GetError());
