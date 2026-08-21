@@ -30,6 +30,19 @@ class Cpu {
         void setDE(uint16_t value);
         void setHL(uint16_t value);
 
+        bool getZeroFlag() const;
+        bool getSubtractFlag() const;
+        bool getHalfCarryFlag() const;
+        bool getCarryFlag() const;
+        
+        void setZeroFlag(bool value);
+        void setSubtractFlag(bool value);
+        void setHalfCarryFlag(bool value);
+        void setCarryFlag(bool value);
+
+        void increment8(uint8_t& reg);
+        void decrement8(uint8_t& reg);
+
         uint8_t fetch8();
         uint16_t fetch16();
     

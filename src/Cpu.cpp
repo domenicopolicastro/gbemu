@@ -34,6 +34,52 @@ void Cpu::setHL(uint16_t value) {
     l = static_cast<uint8_t>(value & 0x00FF);
 }
 
+bool Cpu::getZeroFlag() const {
+    return (f & 0x80) != 0;
+}
+bool Cpu::getSubtractFlag() const {
+    return (f & 0x40) != 0;
+}
+bool Cpu::getHalfCarryFlag() const {
+    return (f & 0x20) != 0;
+}
+bool Cpu::getCarryFlag() const {
+    return (f & 0x10) != 0;
+}
+
+void Cpu::setZeroFlag(bool value) {
+    if (value) f |= 0x80;
+    else f &= 0x7F;
+}
+void Cpu::setSubtractFlag(bool value) {
+    if (value) f |= 0x40;
+    else f  &= 0xBF; 
+}
+void Cpu::setHalfCarryFlag(bool value) {
+    if (value) f |= 0x20;
+    else f  &= 0xDF;
+}
+void Cpu::setCarryFlag(bool value) {
+    if (value) f |= 0x10;
+    else f  &= 0xEF;
+}
+
+void Cpu::increment8(uint8_t& reg) {
+    bool halfCarry = (reg & 0x0F) == 0x0F;
+    reg++;
+    setZeroFlag(reg == 0);
+    setSubtractFlag(false);
+    setHalfCarryFlag(halfCarry);
+}
+
+void Cpu::decrement8(uint8_t& reg) {
+    bool halfCarry = (reg & 0x0F) == 0;
+    reg--;
+    setZeroFlag(reg == 0);
+    setSubtractFlag(true);
+    setHalfCarryFlag(halfCarry);
+}
+
 uint8_t Cpu::fetch8() {
     uint8_t value = bus.read(pc);
     pc++;
@@ -281,6 +327,62 @@ int Cpu::step() {
             return 8;
         case 0x7F:
             return 4;
+
+        case 0x04:
+            increment8(b);
+            return 4;
+        case 0x05:
+            decrement8(b);
+            return 4;
+        case 0x0C:
+            increment8(c);
+            return 4;
+        case 0x0D:
+            decrement8(c);
+            return 4;
+        case 0x14:
+            increment8(d);
+            return 4;
+        case 0x15:
+            decrement8(d);
+            return 4;
+        case 0x1C:
+            increment8(e);
+            return 4;
+        case 0x1D:
+            decrement8(e);
+            return 4;
+        case 0x24:
+            increment8(h);
+            return 4;
+        case 0x25:
+            decrement8(h);
+            return 4;
+        case 0x2C:
+            increment8(l);
+            return 4;
+        case 0x2D:
+            decrement8(l);
+            return 4;
+        case 0x34: {
+            uint8_t value = bus.read(getHL());
+            increment8(value);
+            bus.write(getHL(), value);
+            return 12;
+        }
+        case 0x35: {
+            uint8_t value = bus.read(getHL());
+            decrement8(value);
+            bus.write(getHL(), value);
+            return 12;
+        }
+        case 0x3C:
+            increment8(a);
+            return 4;
+        case 0x3D:
+            decrement8(a);
+            return 4;       
+        
 
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
