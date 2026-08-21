@@ -1,3 +1,5 @@
+#include <cstdio>
+
 #include "Cpu.h"
 
 Cpu::Cpu(Bus& busData) : bus(busData) {}
@@ -48,15 +50,240 @@ int Cpu::step() {
     uint8_t opcode = fetch8();
 
     switch(opcode) {
-        case 0x00: // NOP
+        case 0x00:
             return 4;
-        case 0x3E: // LD A,d8
+        
+        case 0x06:
+            b = fetch8();
+            return 8;
+        case 0x0E:
+            c = fetch8();
+            return 8;
+        case 0x16:
+            d = fetch8();
+            return 8;
+        case 0x1E:
+            e = fetch8();
+            return 8;
+        case 0x26:
+            h = fetch8();
+            return 8;
+        case 0x2E:
+            l = fetch8();
+            return 8;
+        case 0x36:
+            bus.write(getHL(), fetch8());
+            return 12;
+        case 0x3E:
             a = fetch8();
             return 8;
-        case 0x01: // LD BC,d16
+
+        case 0x01:
             setBC(fetch16());
             return 12;
+        case 0x11:
+            setDE(fetch16());
+            return 12;
+        case 0x21:
+            setHL(fetch16());
+            return 12;
+        case 0x31:
+            sp = fetch16();
+            return 12;
+
+        case 0x40:
+            return 4;
+        case 0x41:
+            b = c;
+            return 4;
+        case 0x42:
+            b = d;
+            return 4;
+        case 0x43:
+            b = e;
+            return 4;
+        case 0x44:
+            b = h;
+            return 4;
+        case 0x45:
+            b = l;
+            return 4;
+        case 0x46:
+            b = bus.read(getHL());
+            return 8;
+        case 0x47:
+            b = a;
+            return 4;
+
+        case 0x48:
+            c = b;
+            return 4;
+        case 0x49:
+            return 4;
+        case 0x4A:
+            c = d;
+            return 4;
+        case 0x4B:
+            c = e;
+            return 4;
+        case 0x4C:
+            c = h;
+            return 4;
+        case 0x4D:
+            c = l;
+            return 4;
+        case 0x4E:
+            c = bus.read(getHL());
+            return 8;
+        case 0x4F:
+            c = a;
+            return 4;
+
+        case 0x50:
+            d = b;
+            return 4;
+        case 0x51:
+            d = c;
+            return 4;
+        case 0x52:
+            return 4;
+        case 0x53:
+            d = e;
+            return 4;
+        case 0x54:
+            d = h;
+            return 4;
+        case 0x55:
+            d = l;
+            return 4;
+        case 0x56:
+            d = bus.read(getHL());
+            return 8;
+        case 0x57:
+            d = a;
+            return 4;
+        
+        case 0x58:
+            e = b;
+            return 4;
+        case 0x59:
+            e = c;
+            return 4;
+        case 0x5A:
+            e = d;
+            return 4;
+        case 0x5B:
+            return 4;
+        case 0x5C:
+            e = h;
+            return 4;
+        case 0x5D:
+            e = l;
+            return 4;
+        case 0x5E:
+            e = bus.read(getHL());
+            return 8;
+        case 0x5F:
+            e = a;
+            return 4;
+
+        case 0x60:
+            h = b;
+            return 4;
+        case 0x61:
+            h = c;
+            return 4;
+        case 0x62:
+            h = d;
+            return 4;
+        case 0x63:
+            h = e;
+            return 4;
+        case 0x64:
+            return 4;
+        case 0x65:
+            h = l;
+            return 4;
+        case 0x66:
+            h = bus.read(getHL());
+            return 8;
+        case 0x67:
+            h = a;
+            return 4;
+        
+        case 0x68:
+            l = b;
+            return 4;
+        case 0x69:
+            l = c;
+            return 4;
+        case 0x6A:
+            l = d;
+            return 4;
+        case 0x6B:
+            l = e;
+            return 4;
+        case 0x6C:
+            l = h;
+            return 4;
+        case 0x6D:
+            return 4;
+        case 0x6E:
+            l = bus.read(getHL());
+            return 8;
+        case 0x6F:
+            l = a;
+            return 4;
+
+        case 0x70:
+            bus.write(getHL(), b);
+            return 8;
+        case 0x71:
+            bus.write(getHL(), c);
+            return 8;
+        case 0x72:
+            bus.write(getHL(), d);
+            return 8;
+        case 0x73:
+            bus.write(getHL(), e);
+            return 8;
+        case 0x74:
+            bus.write(getHL(), h);
+            return 8;
+        case 0x75:
+            bus.write(getHL(), l);
+            return 8;
+        // Not yet implemented HALT
+        case 0x77:
+            bus.write(getHL(), a);
+            return 8;
+        
+        case 0x78:
+            a = b;
+            return 4;
+        case 0x79:
+            a = c;
+            return 4;
+        case 0x7A:
+            a = d;
+            return 4;
+        case 0x7B:
+            a = e;
+            return 4;
+        case 0x7C:
+            a = h;
+            return 4;
+        case 0x7D:
+            a = l;
+            return 4;
+        case 0x7E:
+            a = bus.read(getHL());
+            return 8;
+        case 0x7F:
+            return 4;
+
         default:
+            std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
     }
 }
