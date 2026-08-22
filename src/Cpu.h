@@ -43,6 +43,17 @@ class Cpu {
         void increment8(uint8_t& reg);
         void decrement8(uint8_t& reg);
 
+        void add8(uint8_t operand);
+        void sub8(uint8_t operand);
+
+        void and8(uint8_t operand);
+        void xor8(uint8_t operand);
+        void or8(uint8_t operand);
+
+        void compare8(uint8_t operand);
+        void addWithCarry8(uint8_t operand);
+        void subWithCarry8(uint8_t operand);
+
         uint8_t fetch8();
         uint16_t fetch16();
     

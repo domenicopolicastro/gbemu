@@ -71,13 +71,85 @@ void Cpu::increment8(uint8_t& reg) {
     setSubtractFlag(false);
     setHalfCarryFlag(halfCarry);
 }
-
 void Cpu::decrement8(uint8_t& reg) {
     bool halfCarry = (reg & 0x0F) == 0;
     reg--;
     setZeroFlag(reg == 0);
     setSubtractFlag(true);
     setHalfCarryFlag(halfCarry);
+}
+
+void Cpu::add8(uint8_t operand) {
+    bool halfCarry = (a & 0x0F) + (operand & 0x0F) > 0x0F;
+    uint16_t result = static_cast<uint16_t>(a) + static_cast<uint16_t>(operand);
+    bool carry = result > 0xFF;
+    a = static_cast<uint8_t>(result);
+    setZeroFlag(a == 0);
+    setSubtractFlag(false);
+    setHalfCarryFlag(halfCarry);
+    setCarryFlag(carry);
+}
+void Cpu::sub8(uint8_t operand) {
+    bool carry = a < operand;
+    bool halfCarry = (a & 0x0F) < (operand & 0x0F);
+    a = a - operand;
+    setZeroFlag(a == 0);
+    setSubtractFlag(true);
+    setHalfCarryFlag(halfCarry);
+    setCarryFlag(carry);
+}
+
+void Cpu::and8(uint8_t operand) {
+    a &= operand;
+    setZeroFlag(a == 0);
+    setSubtractFlag(false);
+    setHalfCarryFlag(true);
+    setCarryFlag(false);
+}
+void Cpu::xor8(uint8_t operand) {
+    a ^= operand;
+    setZeroFlag(a == 0);
+    setSubtractFlag(false);
+    setHalfCarryFlag(false);
+    setCarryFlag(false);
+}
+void Cpu::or8(uint8_t operand) {
+    a |= operand;
+    setZeroFlag(a == 0);
+    setSubtractFlag(false);
+    setHalfCarryFlag(false);
+    setCarryFlag(false);
+}
+
+void Cpu::compare8(uint8_t operand) {
+    bool carry = a < operand;
+    bool halfCarry = (a & 0x0F) < (operand & 0x0F);
+    uint8_t result = a - operand;
+    setZeroFlag(result == 0);
+    setSubtractFlag(true);
+    setHalfCarryFlag(halfCarry);
+    setCarryFlag(carry);
+}
+void Cpu::addWithCarry8(uint8_t operand) {
+    uint8_t carryIn = getCarryFlag() ? 1 : 0;
+    bool halfCarry = (a & 0x0F) + (operand & 0x0F) + carryIn > 0x0F;
+    uint16_t result = static_cast<uint16_t>(a) + static_cast<uint16_t>(operand) + carryIn;
+    bool carry = result > 0xFF;
+    a = static_cast<uint8_t>(result);
+    setZeroFlag(a == 0);
+    setSubtractFlag(false);
+    setHalfCarryFlag(halfCarry);
+    setCarryFlag(carry);
+}
+void Cpu::subWithCarry8(uint8_t operand) {
+    uint8_t carryIn = getCarryFlag() ? 1 : 0;
+    bool carry = static_cast<uint16_t>(a) < static_cast<uint16_t>(operand) + carryIn; 
+    bool halfCarry = (a & 0x0F) < ((operand & 0x0F) + carryIn);
+    a = a - operand - carryIn;
+    setZeroFlag(a == 0);
+    setSubtractFlag(true);
+    setHalfCarryFlag(halfCarry);
+    setCarryFlag(carry);
 }
 
 uint8_t Cpu::fetch8() {
@@ -383,7 +455,206 @@ int Cpu::step() {
             decrement8(a);
             return 4;       
         
+        case 0x80:
+            add8(b);
+            return 4;
+        case 0x81:
+            add8(c);
+            return 4;
+        case 0x82:
+            add8(d);
+            return 4;
+        case 0x83:
+            add8(e);
+            return 4;
+        case 0x84:
+            add8(h);
+            return 4;
+        case 0x85:
+            add8(l);
+            return 4;
+        case 0x86:
+            add8(bus.read(getHL()));
+            return 8;
+        case 0x87:
+            add8(a);
+            return 4;
 
+        case 0x90:
+            sub8(b);
+            return 4;
+        case 0x91:
+            sub8(c);
+            return 4;
+        case 0x92:
+            sub8(d);
+            return 4;
+        case 0x93:
+            sub8(e);
+            return 4;
+        case 0x94:
+            sub8(h);
+            return 4;
+        case 0x95:
+            sub8(l);
+            return 4;
+        case 0x96:
+            sub8(bus.read(getHL()));
+            return 8;
+        case 0x97:
+            sub8(a);
+            return 4;
+        
+        case 0xA0:
+            and8(b);
+            return 4;
+        case 0xA1:
+            and8(c);
+            return 4;
+        case 0xA2:
+            and8(d);
+            return 4;
+        case 0xA3:
+            and8(e);
+            return 4;
+        case 0xA4:
+            and8(h);
+            return 4;
+        case 0xA5:
+            and8(l);
+            return 4;
+        case 0xA6:
+            and8(bus.read(getHL()));
+            return 8;
+        case 0xA7:
+            and8(a);
+            return 4;
+
+        case 0xA8:
+            xor8(b);
+            return 4;
+        case 0xA9:
+            xor8(c);
+            return 4;
+        case 0xAA:
+            xor8(d);
+            return 4;
+        case 0xAB:
+            xor8(e);
+            return 4;
+        case 0xAC:
+            xor8(h);
+            return 4;
+        case 0xAD:
+            xor8(l);
+            return 4;
+        case 0xAE:
+            xor8(bus.read(getHL()));
+            return 8;
+        case 0xAF:
+            xor8(a);
+            return 4;
+
+        case 0xB0:
+            or8(b);
+            return 4;
+        case 0xB1:
+            or8(c);
+            return 4;
+        case 0xB2:
+            or8(d);
+            return 4;
+        case 0xB3:
+            or8(e);
+            return 4;
+        case 0xB4:
+            or8(h);
+            return 4;
+        case 0xB5:
+            or8(l);
+            return 4;
+        case 0xB6:
+            or8(bus.read(getHL()));
+            return 8;
+        case 0xB7:
+            or8(a);
+            return 4;
+        
+        case 0xB8:
+            compare8(b);
+            return 4;
+        case 0xB9:
+            compare8(c);
+            return 4;
+        case 0xBA:
+            compare8(d);
+            return 4;
+        case 0xBB:
+            compare8(e);
+            return 4;
+        case 0xBC:
+            compare8(h);
+            return 4;
+        case 0xBD:
+            compare8(l);
+            return 4;
+        case 0xBE:
+            compare8(bus.read(getHL()));
+            return 8;
+        case 0xBF:
+            compare8(a);
+            return 4;
+        
+        case 0x88:
+            addWithCarry8(b);
+            return 4;
+        case 0x89:
+            addWithCarry8(c);
+            return 4;
+        case 0x8A:
+            addWithCarry8(d);
+            return 4;
+        case 0x8B:
+            addWithCarry8(e);
+            return 4;
+        case 0x8C:
+            addWithCarry8(h);
+            return 4;
+        case 0x8D:
+            addWithCarry8(l);
+            return 4;
+        case 0x8E:
+            addWithCarry8(bus.read(getHL()));
+            return 8;
+        case 0x8F:
+            addWithCarry8(a);
+            return 4;
+
+        case 0x98:
+            subWithCarry8(b);
+            return 4;
+        case 0x99:
+            subWithCarry8(c);
+            return 4;
+        case 0x9A:
+            subWithCarry8(d);
+            return 4;
+        case 0x9B:
+            subWithCarry8(e);
+            return 4;
+        case 0x9C:
+            subWithCarry8(h);
+            return 4;
+        case 0x9D:
+            subWithCarry8(l);
+            return 4;
+        case 0x9E:
+            subWithCarry8(bus.read(getHL()));
+            return 8;
+        case 0x9F:
+            subWithCarry8(a);
+            return 4;
+       
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
