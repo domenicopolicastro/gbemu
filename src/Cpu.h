@@ -30,6 +30,11 @@ class Cpu {
         void setDE(uint16_t value);
         void setHL(uint16_t value);
 
+        uint8_t readR8(uint8_t index);
+        void writeR8(uint8_t index, uint8_t value);
+        uint16_t readR16(uint8_t index);
+        void writeR16(uint8_t index, uint16_t value);
+
         bool getZeroFlag() const;
         bool getSubtractFlag() const;
         bool getHalfCarryFlag() const;
@@ -40,8 +45,8 @@ class Cpu {
         void setHalfCarryFlag(bool value);
         void setCarryFlag(bool value);
 
-        void increment8(uint8_t& reg);
-        void decrement8(uint8_t& reg);
+        uint8_t increment8(uint8_t value);
+        uint8_t decrement8(uint8_t value);
 
         void add8(uint8_t operand);
         void sub8(uint8_t operand);
