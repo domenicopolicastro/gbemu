@@ -268,11 +268,26 @@ int Cpu::step() {
         writeR16(target, value);
         return 12;
     }
-    
+    if ((opcode & 0b11100111) == 0b00100000) {
+        uint8_t condition = (opcode >> 3) & 0b11;
+        int8_t offset = static_cast<int8_t>(fetch8());
+        bool jump;
+        switch (condition) {
+            case 0: jump = !getZeroFlag();  break;
+            case 1: jump =  getZeroFlag();  break; 
+            case 2: jump = !getCarryFlag(); break; 
+            case 3: jump =  getCarryFlag(); break;
+        }
+        if (jump) {
+            pc = pc + offset;
+            return 12;
+        }
+        return 8;
+    }
+
     switch(opcode) {
         case 0x00:
             return 4;
-
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
