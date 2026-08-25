@@ -284,14 +284,40 @@ int Cpu::step() {
         }
         return 8;
     }
+    if ((opcode & 0b11100111) == 0b11000010) {
+        uint8_t condition = (opcode >> 3) & 0b11;
+        uint16_t address = fetch16();
+        bool jump;
+        switch(condition) {
+            case 0: jump = !getZeroFlag();  break;
+            case 1: jump =  getZeroFlag();  break; 
+            case 2: jump = !getCarryFlag(); break; 
+            case 3: jump =  getCarryFlag(); break;
+        }
+        if (jump) {
+            pc = address;
+            return 16;
+        }
+        return 12;
+    }
 
     switch(opcode) {
         case 0x00:
             return 4;
-        case 0x18:
+        case 0x18: {
             int8_t offset = static_cast<int8_t>(fetch8());
             pc += offset;
             return 12;
+        }
+        case 0xC3: {
+            uint16_t address = fetch16();
+            pc = address;
+            return 16;
+        }
+        case 0xE9: 
+            pc = getHL();
+            return 4;
+        
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
