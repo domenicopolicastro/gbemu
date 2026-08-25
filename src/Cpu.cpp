@@ -288,6 +288,10 @@ int Cpu::step() {
     switch(opcode) {
         case 0x00:
             return 4;
+        case 0x18:
+            int8_t offset = static_cast<int8_t>(fetch8());
+            pc += offset;
+            return 12;
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
