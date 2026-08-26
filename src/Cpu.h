@@ -61,7 +61,10 @@ class Cpu {
 
         uint8_t fetch8();
         uint16_t fetch16();
-    
+
+        void push16(uint16_t value);
+        uint16_t pop16();
+
     public:
         Cpu(Bus& busData);
         int step();

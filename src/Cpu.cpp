@@ -209,6 +209,26 @@ uint16_t Cpu::fetch16() {
     return (static_cast<uint16_t>(high) << 8) | low;
 }
 
+void Cpu::push16(uint16_t value) {
+    sp--;
+    bus.write(sp, static_cast<uint8_t>(value >> 8));
+    sp--;
+    bus.write(sp, static_cast<uint8_t>(value));
+}
+
+uint16_t Cpu::pop16() {
+    uint8_t low = bus.read(sp);
+    sp++;
+    uint8_t high = bus.read(sp);
+    sp++;
+    return (static_cast<uint16_t>(high) << 8 | low);
+}
+
+// 0xC1 1100 0001
+// 0xD1 1101 0001
+// 0xE1 1110 0001
+// 0xF1 1111 0001
+
 int Cpu::step() {
     uint8_t opcode = fetch8();
 
@@ -300,7 +320,26 @@ int Cpu::step() {
         }
         return 12;
     }
-
+    if ((opcode & 0b11001111) == 0b11000101) {
+        uint8_t target = (opcode >> 4) & 0b11;
+        switch(target) {
+            case 0: push16(getBC()); break;
+            case 1: push16(getDE()); break;
+            case 2: push16(getHL()); break;
+            case 3: push16(getAF()); break;
+        }
+        return 16;
+    }
+    if ((opcode & 0b11001111) == 0b11000001) {
+        uint8_t target = (opcode >> 4) & 0b11;
+        switch(target) {
+            case 0: setBC(pop16()); break;
+            case 1: setDE(pop16()); break;
+            case 2: setHL(pop16()); break;
+            case 3: setAF(pop16()); break;
+        }
+        return 12;
+    }
     switch(opcode) {
         case 0x00:
             return 4;
