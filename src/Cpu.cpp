@@ -224,11 +224,6 @@ uint16_t Cpu::pop16() {
     return (static_cast<uint16_t>(high) << 8 | low);
 }
 
-// 0xC1 1100 0001
-// 0xD1 1101 0001
-// 0xE1 1110 0001
-// 0xF1 1111 0001
-
 int Cpu::step() {
     uint8_t opcode = fetch8();
 
@@ -340,6 +335,59 @@ int Cpu::step() {
         }
         return 12;
     }
+    
+    /* 
+    *  CALL Operations 
+    *  0xC4 Call NZ, a16 1100 0100
+    *  0xCC CALL Z, a16  1100 1100
+    *  0xD4 CALL NC, a16 1101 0100
+    *  0xDC CALL C, a16  1101 1100  
+    *  
+    *  Pattern:          110X X100  
+    */
+    if ((opcode & 0b11100111) == 0b11000100) {
+        uint8_t condition = (opcode >> 3) & 0b11;
+        uint16_t address = fetch16();
+        bool call;
+        switch (condition) {
+            case 0: call = !getZeroFlag(); break;
+            case 1: call = getZeroFlag(); break;
+            case 2: call = !getCarryFlag(); break;
+            case 3: call = getCarryFlag(); break;
+        }
+        if (call) {
+            push16(pc);
+            pc = address;
+            return 24;
+        }
+        return 12;
+    }
+    
+
+    /*
+    *  RET Operations
+    *  0xC0 1100 0000
+    *  0xC8 1100 1000
+    *  0xD0 1101 0000
+    *  0xD8 1101 1000
+    *       110X X000
+    */
+   if ((opcode & 0b11100111) == 0b11000000) {
+        uint8_t condition = (opcode >> 3) & 0b11;
+        bool takeReturn;
+        switch (condition) {
+            case 0: takeReturn = !getZeroFlag(); break;
+            case 1: takeReturn = getZeroFlag(); break;
+            case 2: takeReturn = !getCarryFlag(); break;
+            case 3: takeReturn = getCarryFlag(); break;         
+        }
+        if (takeReturn) {
+            pc = pop16();
+            return 20;
+        }
+        return 8;
+   }
+    
     switch(opcode) {
         case 0x00:
             return 4;
@@ -353,6 +401,20 @@ int Cpu::step() {
             pc = address;
             return 16;
         }
+        // Generic CALL a16
+        case 0xCD: {
+            uint16_t address = fetch16();
+            push16(pc);
+            pc = address;
+            return 24;
+        }
+
+        // Generic RET
+        case 0xC9: {
+            pc = pop16();
+            return 16;
+        }
+
         case 0xE9: 
             pc = getHL();
             return 4;
