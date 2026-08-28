@@ -388,6 +388,45 @@ int Cpu::step() {
         return 8;
    }
     
+
+   /*
+    *   INDIRECT A STORES
+    *   0x02  LD (BC),A     0000 0010
+    *   0x12  LD (DE),A     0001 0010
+    *   0x22  LD (HL+),A    0010 0010
+    *   0x32  LD (HL-),A    0011 0010
+    *   Pattern:            00XX 0010
+   */
+   if ((opcode & 0b11001111) == 0b00000010) {
+        uint8_t operation = (opcode >> 4) & 0b11;
+        switch(operation) {
+            case 0: bus.write(getBC(), a); break;
+            case 1: bus.write(getDE(), a); break;
+            case 2: bus.write(getHL(), a); setHL(getHL() + 1); break;
+            case 3: bus.write(getHL(), a); setHL(getHL() - 1); break;
+        }
+        return 8;
+   }
+   /*
+    *   INDIRECT A LOADS
+    *   0x0A  LD A,(BC)     0000 1010
+    *   0x1A  LD A,(DE)     0001 1010
+    *   0x2A  LD A,(HL+)    0010 1010
+    *   0x3A  LD A,(HL-)    0011 1010
+    *   Pattern:            00XX 1010
+   */
+   if ((opcode & 0b11001111) == 0b00001010) {
+       uint8_t operation = (opcode >> 4) & 0b11;
+       switch (operation) {
+            case 0: a = bus.read(getBC()); break;
+            case 1: a = bus.read(getDE()); break;
+            case 2: a = bus.read(getHL()); setHL(getHL() + 1); break;
+            case 3: a = bus.read(getHL()); setHL(getHL() - 1); break;
+       }
+       return 8;
+   }
+
+
     switch(opcode) {
         case 0x00:
             return 4;
