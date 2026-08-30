@@ -426,6 +426,27 @@ int Cpu::step() {
        return 8;
    }
 
+   /*
+   *    LD (a16), A - 0xEA - 1110 1010
+   *    LD A, (a16) - 0xFA - 1111 1010
+   *    Pattern 111X 1010
+   */
+  if ((opcode & 0b11101111) == 0b11101010) {
+    bool loadInA = (opcode >> 4) & 0b1;
+    if(loadInA)  a = bus.read(fetch16()); 
+    else bus.write(fetch16(), a);
+    return 16;
+  }
+  
+  if ((opcode & 0b11101111) == 0b11100000) {
+    bool loadInA = (opcode >> 4) & 0b1;
+    uint16_t address = 0xFF00 + fetch8();
+    if(loadInA) a = bus.read(address); 
+    else bus.write(address, a);
+    return 12;
+  }
+
+
 
     switch(opcode) {
         case 0x00:
