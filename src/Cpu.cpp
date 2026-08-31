@@ -445,12 +445,30 @@ int Cpu::step() {
     else bus.write(address, a);
     return 12;
   }
+  // 0xE2 0xF2
+  // 1110 0010
+  // 1111 0010
+  if ((opcode & 0b11101111) == 0b11100010) {
+    bool loadInA = (opcode >> 4) & 0b1;
+    uint16_t address = 0xFF00 + c;
+    if(loadInA) a = bus.read(address); 
+    else bus.write(address, a);
+    return 8;
+  }
 
 
 
     switch(opcode) {
         case 0x00:
             return 4;
+        
+        case 0x08: {
+            uint16_t address = fetch16();
+            bus.write(address, static_cast<uint8_t>(sp));
+            bus.write(address + 1, static_cast<uint8_t>(sp >> 8));
+            return 20;
+        }
+        
         case 0x18: {
             int8_t offset = static_cast<int8_t>(fetch8());
             pc += offset;
@@ -470,15 +488,30 @@ int Cpu::step() {
         }
 
         // Generic RET
-        case 0xC9: {
+        case 0xC9: 
             pc = pop16();
             return 16;
-        }
 
         case 0xE9: 
             pc = getHL();
             return 4;
         
+        case 0xF8:{
+            int8_t value = static_cast<int8_t>(fetch8());
+            uint16_t result = sp + value;
+            setHL(result);
+            bool carry = (sp & 0x00FF) + (static_cast<uint8_t>(value)) > 0x00FF;
+            bool halfCarry = (sp & 0x000F) + (static_cast<uint8_t>(value) & 0x0F) > 0x000F;
+            setCarryFlag(carry);
+            setHalfCarryFlag(halfCarry);
+            setZeroFlag(false);
+            setSubtractFlag(false);
+            return 12;
+        }
+        case 0xF9:
+            sp = getHL();
+            return 8;
+
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
