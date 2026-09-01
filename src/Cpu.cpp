@@ -456,6 +456,52 @@ int Cpu::step() {
     return 8;
   }
 
+  /*
+  *     INC r16 instructions
+  * INC BC 0x03 0000 0011
+  * INC DE 0X13 0001 0011
+  * INC HL 0x23 0010 0011
+  * INC SP 0x33 0011 0011
+  * Pattern is 00XX 0011
+  *     DEC r16 instructions
+  * DEC BC 0x0B 0000 1011
+  * DEC DE 0x1B 0001 1011
+  * DEC HL 0x2B 0010 1011
+  * DEC SP 0x3B 0011 1011
+  * Pattern is 00XX 1011
+  * 
+  * We can join those two sets by making 00XX S011
+  */
+    if ((opcode & 0b11000111) == 0b00000011) {
+        uint8_t reg = (opcode >> 4) & 0b11;
+        int delta = ((opcode >> 3) & 0b1) ? -1 : 1;
+        switch (reg) {
+            case 0: setBC(getBC() + delta); break;
+            case 1: setDE(getDE() + delta); break;
+            case 2: setHL(getHL() + delta); break;
+            case 3: sp = sp + delta; break;
+        }
+        return 8;
+    }
+
+    if ((opcode & 0b11001111) == 0b00001001) {
+        uint8_t reg = (opcode >> 4) & 0b11;
+        uint16_t operand;
+        uint16_t oldHL = getHL();
+        switch (reg) {
+            case 0: operand = getBC(); break;
+            case 1: operand = getDE(); break;
+            case 2: operand = getHL(); break;
+            case 3: operand = sp;
+        }
+        setHL(oldHL + operand);
+        bool carry = static_cast<uint32_t>(oldHL) + operand > 0xFFFF;
+        bool halfCarry = (oldHL & 0x0FFF) + (operand & 0x0FFF) > 0x0FFF;
+        setCarryFlag(carry);
+        setHalfCarryFlag(halfCarry);
+        setSubtractFlag(false);
+        return 8;
+    }
 
 
     switch(opcode) {
@@ -492,6 +538,19 @@ int Cpu::step() {
             pc = pop16();
             return 16;
 
+        case 0xE8: {
+            int8_t value = static_cast<int8_t>(fetch8());
+            uint16_t oldSp = sp;
+            uint8_t rawValue = static_cast<uint8_t>(value);
+            sp = oldSp + value;
+            bool carry = (oldSp & 0x00FF) + rawValue > 0xFF;
+            bool halfCarry = (oldSp & 0x0F) + (rawValue & 0x0F) > 0x0F;
+            setHalfCarryFlag(halfCarry);
+            setCarryFlag(carry);
+            setZeroFlag(false);
+            setSubtractFlag(false);
+            return 16;
+        }
         case 0xE9: 
             pc = getHL();
             return 4;
