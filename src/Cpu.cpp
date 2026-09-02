@@ -532,6 +532,50 @@ int Cpu::step() {
         return 8;
    }
 
+   /*
+   *
+   *    07  RLCA 0000 0111
+   *    0F  RRCA 0000 1111
+   *    17  RLA  0001 0111
+   *    1F  RRA  0001 1111
+   *    
+   *    Pattern: 000C D111
+   */
+   if ((opcode & 0b11100111) == 0b00000111) {
+        bool rotateRight = (opcode >> 3) & 0b1;
+        bool throughCarry = (opcode >> 4) & 0b1;
+        bool newCarry;
+        bool oldCarry = getCarryFlag();
+
+        if (throughCarry) {
+            if(rotateRight) {
+                newCarry = a & 0b1;
+                a = a >> 1;
+                if(oldCarry) a |= 0b10000000;
+            } else {
+                newCarry = a & 0b10000000;
+                a = a << 1;
+                if (oldCarry) a |= 0b00000001;
+            }
+        } else {
+            if(rotateRight) {
+                newCarry = a & 0b1;
+                a = a >> 1;
+                if(newCarry) a |= 0b10000000;
+            } else {
+                newCarry = a & 0b10000000;
+                a = a << 1;
+                if (newCarry) a |= 0b00000001;
+            }
+            
+        }
+        setCarryFlag(newCarry);
+        setZeroFlag(false);
+        setSubtractFlag(false);
+        setHalfCarryFlag(false);
+        return 4;
+   }
+
     switch(opcode) {
         case 0x00:
             return 4;
