@@ -503,6 +503,34 @@ int Cpu::step() {
         return 8;
     }
 
+    /*
+    *
+    * C6 ADD A,n8 1100 0110
+    * CE ADC A,n8 1100 1110
+    * D6 SUB n8   1101 0110
+    * DE SBC A,n8 1101 1110
+    * 
+    * E6 AND n8   1110 0110
+    * EE XOR n8   1110 1110
+    * F6 OR n8    1111 0110
+    * FE CP n8    1111 1110
+    *             11XX X110
+    */
+   if ((opcode & 0b11000111) == 0b11000110) {
+        uint8_t op = (opcode >> 3) & 0b111;
+        uint8_t value = fetch8();
+        switch(op) {
+            case 0b000: add8(value); break;
+            case 0b001: addWithCarry8(value); break;
+            case 0b010: sub8(value); break;
+            case 0b011: subWithCarry8(value); break;
+            case 0b100: and8(value); break;
+            case 0b101: xor8(value); break;
+            case 0b110: or8(value); break;
+            case 0b111: compare8(value); break;
+        }
+        return 8;
+   }
 
     switch(opcode) {
         case 0x00:
