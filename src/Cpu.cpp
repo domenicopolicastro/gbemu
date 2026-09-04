@@ -643,6 +643,52 @@ int Cpu::step() {
             sp = getHL();
             return 8;
 
+        // DAA
+        case 0x27:{
+            uint8_t correction = 0;
+            if (!getSubtractFlag()) {
+                if(getHalfCarryFlag() || (a & 0b00001111) > 0x9) {
+                    correction += 0x06;
+                }
+                if (getCarryFlag() || a > 0x99) {
+                    correction += 0x60;
+                    setCarryFlag(true);
+                }
+                a += correction;
+            } else {
+                if (getHalfCarryFlag()) {
+                    correction -= 0x06;
+                }
+                if (getCarryFlag()) {
+                    correction -= 0x60;
+                }
+                a -= correction;
+            }
+            
+            setHalfCarryFlag(false);
+            setZeroFlag(a == 0);
+            return 4;
+        }
+        // CPL
+        case 0x2F:
+            a = ~a;
+            setSubtractFlag(true);
+            setHalfCarryFlag(true);
+            return 4;
+        
+        // SCF
+        case 0x37:
+            setCarryFlag(true);
+            setSubtractFlag(false);
+            setHalfCarryFlag(false);
+            return 4;
+        // CCF
+        case 0x3F:
+            setCarryFlag(!getCarryFlag());
+            setSubtractFlag(false);
+            setHalfCarryFlag(false);
+            return 4;
+
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
