@@ -576,6 +576,24 @@ int Cpu::step() {
         return 4;
    }
 
+   /* RST Instructions 
+   * C7 → RST 00h 1100 0111
+   * CF → RST 08h 1100 1111
+   * D7 → RST 10h 1101 0111
+   * DF → RST 18h 1101 1111
+   * E7 → RST 20h 1110 0111
+   * EF → RST 28h 1110 1111
+   * F7 → RST 30h 1111 0111
+   * FF → RST 38h 1111 1111
+   * Pattern      11AA A111  
+   */
+   if ((opcode & 0b11000111) == 0b11000111) {
+        uint16_t address = opcode & 0b00111000;
+        push16(pc);
+        pc = address;
+        return 16;
+   }
+
     switch(opcode) {
         case 0x00:
             return 4;
@@ -688,6 +706,8 @@ int Cpu::step() {
             setSubtractFlag(false);
             setHalfCarryFlag(false);
             return 4;
+        
+        
 
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
