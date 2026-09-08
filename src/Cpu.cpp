@@ -224,8 +224,96 @@ uint16_t Cpu::pop16() {
     return (static_cast<uint16_t>(high) << 8 | low);
 }
 
+uint8_t Cpu::rotate8(uint8_t value, bool rotateRight, bool throughCarry) {
+    bool oldCarry = getCarryFlag();
+    bool newCarry;
+
+    if (throughCarry) {
+        if(rotateRight) {
+            newCarry = value & 0b1;
+            value = value >> 1;
+            if(oldCarry) value |= 0b10000000;
+        } else {
+            newCarry = value & 0b10000000;
+            value = value << 1;
+            if (oldCarry) value |= 0b00000001;
+        }
+    } else {
+        if(rotateRight) {
+            newCarry = value & 0b1;
+            value = value >> 1;
+            if(newCarry) value |= 0b10000000;
+        } else {
+            newCarry = value & 0b10000000;
+            value = value << 1;
+            if (newCarry) value |= 0b00000001;
+        }        
+    }
+    setCarryFlag(newCarry);
+    setSubtractFlag(false);
+    setHalfCarryFlag(false);
+
+    return value;
+}
+
+uint8_t Cpu::shift8(uint8_t value, bool shiftRight, bool preserveBit7) {
+    bool newCarry;
+    bool bit7WasSet = value & 0b10000000;
+    if (shiftRight){
+        newCarry = value & 0b1;
+        value >>= 1;
+        if (preserveBit7 && bit7WasSet) value |= 0b10000000; 
+        
+    } else {
+        newCarry = bit7WasSet;
+        value <<=1;
+    }
+    setCarryFlag(newCarry);
+    setSubtractFlag(false);
+    setHalfCarryFlag(false);
+    return value;
+}
+
+int Cpu::executeCb(uint8_t cbOpcode) {
+    uint8_t family = (cbOpcode >> 6) & 0b11;
+    uint8_t operation = (cbOpcode >> 3) & 0b111;
+    uint8_t target = cbOpcode & 0b111;
+
+    uint8_t value = readR8(target); 
+
+    int cycles;
+
+    switch(family) {
+        case 0: {
+            switch(operation) {
+                // RLC
+                case 0: value = rotate8(value, false, false); break;
+                // RRC
+                case 1: value = rotate8(value, true, false); break;
+                // RL
+                case 2: value = rotate8(value, false, true); break;
+                // RR 
+                case 3: value = rotate8 (value, true, true); break;
+                // SLA
+                case 4: value = shift8(value, false, false); break;
+                // SRA
+                case 5: value = shift8(value, true, true); break;
+                // SRL
+                case 6: value = shift8(value, true, false); break;   
+            }
+            setZeroFlag(value == 0);
+            writeR8(target, value);
+            return target == 6 ? 16 : 8;
+        }
+    } 
+
+    return 0;
+}
+
 int Cpu::step() {
     uint8_t opcode = fetch8();
+
+    if (opcode == 0xCB) return executeCb(fetch8());
 
     if(opcode >= 0x40 && opcode <=0x7F) {
         if(opcode == 0x76) {
@@ -544,35 +632,8 @@ int Cpu::step() {
    if ((opcode & 0b11100111) == 0b00000111) {
         bool rotateRight = (opcode >> 3) & 0b1;
         bool throughCarry = (opcode >> 4) & 0b1;
-        bool newCarry;
-        bool oldCarry = getCarryFlag();
-
-        if (throughCarry) {
-            if(rotateRight) {
-                newCarry = a & 0b1;
-                a = a >> 1;
-                if(oldCarry) a |= 0b10000000;
-            } else {
-                newCarry = a & 0b10000000;
-                a = a << 1;
-                if (oldCarry) a |= 0b00000001;
-            }
-        } else {
-            if(rotateRight) {
-                newCarry = a & 0b1;
-                a = a >> 1;
-                if(newCarry) a |= 0b10000000;
-            } else {
-                newCarry = a & 0b10000000;
-                a = a << 1;
-                if (newCarry) a |= 0b00000001;
-            }
-            
-        }
-        setCarryFlag(newCarry);
+        a = rotate8(a, rotateRight, throughCarry);
         setZeroFlag(false);
-        setSubtractFlag(false);
-        setHalfCarryFlag(false);
         return 4;
    }
 
@@ -714,6 +775,8 @@ int Cpu::step() {
             return 0;
     }
 }
+
+
 
 // Debug getters
 uint16_t Cpu::getPC() const {
