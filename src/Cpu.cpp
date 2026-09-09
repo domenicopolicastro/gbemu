@@ -298,8 +298,13 @@ int Cpu::executeCb(uint8_t cbOpcode) {
                 case 4: value = shift8(value, false, false); break;
                 // SRA
                 case 5: value = shift8(value, true, true); break;
+                // SWAP
+                case 6: 
+                    value = (value << 4) | (value >> 4); 
+                    setCarryFlag(false);
+                    break;
                 // SRL
-                case 6: value = shift8(value, true, false); break;   
+                case 7: value = shift8(value, true, false); break;   
             }
             setZeroFlag(value == 0);
             writeR8(target, value);
