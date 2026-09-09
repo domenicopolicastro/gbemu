@@ -276,12 +276,10 @@ uint8_t Cpu::shift8(uint8_t value, bool shiftRight, bool preserveBit7) {
 
 int Cpu::executeCb(uint8_t cbOpcode) {
     uint8_t family = (cbOpcode >> 6) & 0b11;
-    uint8_t operation = (cbOpcode >> 3) & 0b111;
+    uint8_t operation = (cbOpcode >> 3) & 0b111; 
     uint8_t target = cbOpcode & 0b111;
 
     uint8_t value = readR8(target); 
-
-    int cycles;
 
     switch(family) {
         case 0: {
@@ -301,7 +299,10 @@ int Cpu::executeCb(uint8_t cbOpcode) {
                 // SWAP
                 case 6: 
                     value = (value << 4) | (value >> 4); 
+                    setZeroFlag(value == 0);
                     setCarryFlag(false);
+                    setSubtractFlag(false);
+                    setHalfCarryFlag(false);
                     break;
                 // SRL
                 case 7: value = shift8(value, true, false); break;   
@@ -310,6 +311,20 @@ int Cpu::executeCb(uint8_t cbOpcode) {
             writeR8(target, value);
             return target == 6 ? 16 : 8;
         }
+        case 1:
+            if ((value >> operation) & 0b1) setZeroFlag(false);
+            else setZeroFlag(true);
+            setSubtractFlag(false);
+            setHalfCarryFlag(true); 
+            return target == 6 ? 12 : 8;
+        case 2:
+            value = value & ~(0b1 << operation);
+            writeR8(target, value);
+            return target == 6 ? 16 : 8;
+        case 3:
+            value = value | (0b1 << operation);
+            writeR8(target, value);
+            return target == 6 ? 16 : 8;
     } 
 
     return 0;
@@ -738,7 +753,7 @@ int Cpu::step() {
                     correction += 0x60;
                     setCarryFlag(true);
                 }
-                a += correction;
+                
             } else {
                 if (getHalfCarryFlag()) {
                     correction -= 0x06;
@@ -746,9 +761,8 @@ int Cpu::step() {
                 if (getCarryFlag()) {
                     correction -= 0x60;
                 }
-                a -= correction;
             }
-            
+            a += correction;
             setHalfCarryFlag(false);
             setZeroFlag(a == 0);
             return 4;
