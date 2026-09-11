@@ -12,6 +12,8 @@ class Bus {
         std::array<uint8_t, 0xA0> oam{};
         std::array<uint8_t, 0x7F> hram{};
         uint8_t interruptEnable{};
+
+        uint8_t serialData = 0;
     public:
         Bus(const std::vector<uint8_t>& romData);
         uint8_t read(uint16_t address) const;

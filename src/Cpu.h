@@ -66,7 +66,7 @@ class Cpu {
         uint16_t pop16();
 
         uint8_t rotate8(uint8_t value, bool rotateRight, bool throughCarry);
-        uint8_t Cpu::shift8(uint8_t value, bool shiftRight, bool preserveBit7);
+        uint8_t shift8(uint8_t value, bool shiftRight, bool preserveBit7);
 
         int executeCb(uint8_t cbOpcode);
 

@@ -18,6 +18,23 @@ uint8_t Bus::read(uint16_t address) const {
 }
 
 void Bus::write(uint16_t address, uint8_t value){
+    
+    // Blargg test debug output.
+    // The test writes the character to FF01.
+    // Writing 0x81 to FF02 triggers the serial transfer,
+    // so we print the stored character to stdout.
+    if (address == 0xFF01) {
+        serialData = value;
+        return;
+    }
+    if (address == 0xFF02) {
+        if (value == 0x81) {
+            std::putchar(serialData);
+            std::fflush(stdout);
+        }
+        return;
+    }
+
     if (address >= 0x8000 && address <= 0x9FFF) vram[address - 0x8000] = value;
     else if(address >= 0xC000 && address <= 0xDFFF) wram[address - 0xC000] = value;
     else if (address >= 0xE000 && address <= 0xFDFF) wram[address -0xE000] = value;

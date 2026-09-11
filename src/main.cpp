@@ -61,21 +61,7 @@ int main(int argc, char* argv[]) {
     }
 
     Bus bus(rom);
-    
-
-    // Test step
-    std::vector<uint8_t> testRom(0x8000, 0);
-    testRom[0x0100] = 0x3E;
-    testRom[0x0101] = 0x42;
-
-    Bus testBus(testRom);
-    Cpu cpu(testBus);
-    std::printf("PC before step: %04X\n", cpu.getPC());
-    std::printf("A register before step: %02X\n", cpu.getA());
-    int cycles = cpu.step();
-    std::printf("PC after step: %04X\n", cpu.getPC());
-    std::printf("A register after step: %02X\n", cpu.getA());
-    std::printf("Cycles: %d\n", cycles);
+    Cpu cpu(bus);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         std::printf("SDL_Init error: %s\n", SDL_GetError());
