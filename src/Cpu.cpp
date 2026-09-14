@@ -790,6 +790,10 @@ int Cpu::step() {
         case 0xF3:
             ime = false;
             return 4;
+        case 0xD9:
+            pc = pop16();
+            ime = true;
+            return 16;
         
         
 
