@@ -787,6 +787,10 @@ int Cpu::step() {
             setHalfCarryFlag(false);
             return 4;
         
+        case 0xF3:
+            ime = false;
+            return 4;
+        
         
 
         default:

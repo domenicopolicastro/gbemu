@@ -25,6 +25,8 @@ class Cpu {
         uint16_t getDE() const;
         uint16_t getHL() const;
 
+        bool ime = false;
+
         void setAF(uint16_t value);
         void setBC(uint16_t value);
         void setDE(uint16_t value);

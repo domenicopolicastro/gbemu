@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     for (int i=0; i<10000000; i++) {
         int cycles = cpu.step();
-        printf("Executed %d operations \n", i);
+        if (i%1'000'000 == 0) printf("Executed %d operations \n", i);
         if (cycles == 0) break;
     }
 
