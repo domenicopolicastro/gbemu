@@ -12,6 +12,7 @@ class Bus {
         std::array<uint8_t, 0xA0> oam{};
         std::array<uint8_t, 0x7F> hram{};
         uint8_t interruptEnable{};
+        uint8_t interruptFlag{};
 
         uint8_t serialData = 0;
     public:

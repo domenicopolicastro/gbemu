@@ -330,7 +330,39 @@ int Cpu::executeCb(uint8_t cbOpcode) {
     return 0;
 }
 
+int Cpu::dispatchInterrupt(uint8_t pending, uint8_t IF) {
+    ime = false;
+    push16(pc);
+    if(pending & 0b00000001) {
+        bus.write(0xFF0F, IF & 0b11111110);    
+        pc = 0x0040;
+    } else if (pending & 0b00000010) {
+        bus.write(0xFF0F, IF & 0b11111101);
+        pc = 0x0048;
+    } else if (pending & 0b00000100) {
+        bus.write(0xFF0F, IF & 0b11111011);
+        pc = 0x0050;
+    } else if (pending & 0b00001000) {
+        bus.write(0xFF0F, IF & 0b11110111);
+        pc = 0x0058;
+    } else if (pending & 0b00010000) {
+        bus.write(0xFF0F, IF & 0b11101111);
+        pc = 0x0060;
+    }
+    return 20;
+}
+
 int Cpu::step() {
+    uint8_t IF = bus.read(0xFF0F);
+    uint8_t IE = bus.read(0xFFFF);
+    uint8_t pending = IE & IF & 0x1F;
+    if (ime && pending) return dispatchInterrupt(pending, IF);
+
+    if(enableIme) {
+        ime = true;
+        enableIme = false;
+    }
+
     uint8_t opcode = fetch8();
 
     if (opcode == 0xCB) return executeCb(fetch8());
@@ -794,9 +826,9 @@ int Cpu::step() {
             pc = pop16();
             ime = true;
             return 16;
-        
-        
-
+        case 0xFB:
+            enableIme = true;
+            return 4;        
         default:
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;

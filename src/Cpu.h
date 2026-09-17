@@ -26,6 +26,7 @@ class Cpu {
         uint16_t getHL() const;
 
         bool ime = false;
+        bool enableIme = false;
 
         void setAF(uint16_t value);
         void setBC(uint16_t value);
@@ -71,6 +72,7 @@ class Cpu {
         uint8_t shift8(uint8_t value, bool shiftRight, bool preserveBit7);
 
         int executeCb(uint8_t cbOpcode);
+        int dispatchInterrupt(uint8_t pending, uint8_t IF);
 
     public:
         Cpu(Bus& busData);
