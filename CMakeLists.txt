@@ -11,12 +11,15 @@ find_package(SDL2 REQUIRED)
 add_executable(gbemu 
     src/main.cpp
     src/Bus.cpp
-    src/Cpu.cpp)
+    src/Cpu.cpp
+    src/Timer.cpp
+)
 
  add_executable(cpu_test
     tests/cpu_test.cpp
     src/Cpu.cpp
     src/Bus.cpp
+    src/Timer.cpp
 )
    
 target_link_libraries(gbemu PRIVATE SDL2::SDL2)
