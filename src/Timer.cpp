@@ -29,3 +29,20 @@ void Timer::write(uint16_t address, uint8_t value) {
             break;
     }
 }
+
+uint8_t Timer::selectedDividerBit() const {
+    const uint8_t firstTwoBitsOfTAC = tac & 0b00000011;
+    switch (firstTwoBitsOfTAC) {
+        case 0b00: return 9;
+        case 0b01: return 3;
+        case 0b10: return 5;
+        case 0b11: return 7;
+        default: return 0;
+    }
+}
+
+bool Timer::timerSignal() const {
+    if ((tac & 0b00000100) 
+        && ((dividerCounter >> selectedDividerBit()) & 0b00000001)) return true;
+    else return false;
+}
