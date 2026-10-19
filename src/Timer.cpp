@@ -55,3 +55,17 @@ bool Timer::incrementTima() {
     tima++;
     return false;
 }
+
+ bool Timer::tick(int cycles) {
+    bool interruptRequested = false;
+    for(int i=0; i<cycles; i++) {
+        bool oldTimerSignal = timerSignal();
+        dividerCounter++;
+        bool newTimerSignal = timerSignal();
+        if (oldTimerSignal && !newTimerSignal) {
+            if(incrementTima()) interruptRequested = true;
+
+        }
+    }
+    return interruptRequested;
+ }
