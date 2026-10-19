@@ -46,3 +46,12 @@ bool Timer::timerSignal() const {
         && ((dividerCounter >> selectedDividerBit()) & 0b00000001)) return true;
     else return false;
 }
+
+bool Timer::incrementTima() {
+    if (tima == 0xFF) {
+        tima = tma;
+        return true;
+    }
+    tima++;
+    return false;
+}
