@@ -29,6 +29,7 @@ void runRom(const fs::path& romPath) {
     std::printf("\n===== %s =====\n", romPath.string().c_str());
     for (int i=0; i<100'000'000; i++) {
         int cycles = cpu.step();
+        bus.tick(cycles);
         // if (i%1'000'000 == 0) printf("Executed %d operations \n", i);
         if (cycles == 0) break;
     }
