@@ -20,13 +20,15 @@ class Cpu {
         uint16_t pc = 0x0100;
         uint16_t sp = 0xFFFE;
 
+        bool ime = false;
+        bool enableIme = false;
+
+        bool isHalted = false;
+
         uint16_t getAF() const;
         uint16_t getBC() const;
         uint16_t getDE() const;
         uint16_t getHL() const;
-
-        bool ime = false;
-        bool enableIme = false;
 
         void setAF(uint16_t value);
         void setBC(uint16_t value);

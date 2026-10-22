@@ -356,6 +356,12 @@ int Cpu::step() {
     uint8_t IF = bus.read(0xFF0F);
     uint8_t IE = bus.read(0xFFFF);
     uint8_t pending = IE & IF & 0x1F;
+
+    if(isHalted) {
+        if (pending == 0) return 4;
+        isHalted = false;
+    }
+
     if (ime && pending) return dispatchInterrupt(pending, IF);
 
     if(enableIme) {
@@ -369,7 +375,7 @@ int Cpu::step() {
 
     if(opcode >= 0x40 && opcode <=0x7F) {
         if(opcode == 0x76) {
-            // HALT - Not yet implemented
+            isHalted = true;
             return 4;
         } else {
             uint8_t destination = (opcode >> 3) & 0b111;
