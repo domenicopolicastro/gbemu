@@ -1,0 +1,28 @@
+name: CPU Tests
+
+on:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  blargg:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository and test ROMs
+        uses: actions/checkout@v7
+        with: 
+          submodules: recursive
+      - name: Install build dependencies
+        run: |
+              sudo apt-get update
+              sudo apt-get install -y build-essential cmake libsdl2-dev
+      - name: Configure project
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build test runner
+        run: cmake --build build --target cpu_test --parallel 2
+      - name: Run individual Blargg CPU tests
+        run: ./build/cpu_test tests/gb-test-roms/cpu_instrs/individual
+      
