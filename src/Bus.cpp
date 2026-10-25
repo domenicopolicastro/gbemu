@@ -33,6 +33,7 @@ void Bus::write(uint16_t address, uint8_t value){
         if (value == 0x81) {
             std::putchar(serialData);
             std::fflush(stdout);
+            serialOutput.push_back(static_cast<char>(serialData));
         }
         return;
     }
@@ -50,4 +51,8 @@ void Bus::write(uint16_t address, uint8_t value){
 
 void Bus::tick(int cycles) {
     if (timer.tick(cycles)) interruptFlag |= 0b00000100;
+}
+
+const std::string& Bus::getSerialDataOutput() const {
+    return serialOutput;
 }

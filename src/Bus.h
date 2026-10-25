@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <array>
+#include <string>
 
 #include "Timer.h"
 
@@ -19,10 +20,14 @@ class Bus {
         uint8_t serialData = 0;
 
         Timer timer{};
+
+        std::string serialOutput;
+
     public:
         Bus(const std::vector<uint8_t>& romData);
         uint8_t read(uint16_t address) const;
         void write(uint16_t address, uint8_t value);
 
         void tick(int cycles);
+        const std::string& getSerialDataOutput() const;
 };
