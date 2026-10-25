@@ -199,7 +199,8 @@ void Cpu::subWithCarry8(uint8_t operand) {
 
 uint8_t Cpu::fetch8() {
     uint8_t value = bus.read(pc);
-    pc++;
+    if (haltBug) haltBug = false;
+    else pc++;
     return value;
 }
 
@@ -332,6 +333,13 @@ int Cpu::executeCb(uint8_t cbOpcode) {
 
 int Cpu::dispatchInterrupt(uint8_t pending, uint8_t IF) {
     ime = false;
+    enableIme = false;
+
+    if (haltBug) {
+        pc--;
+        haltBug = false;
+    }
+
     push16(pc);
     if(pending & 0b00000001) {
         bus.write(0xFF0F, IF & 0b11111110);    
@@ -352,30 +360,15 @@ int Cpu::dispatchInterrupt(uint8_t pending, uint8_t IF) {
     return 20;
 }
 
-int Cpu::step() {
-    uint8_t IF = bus.read(0xFF0F);
-    uint8_t IE = bus.read(0xFFFF);
-    uint8_t pending = IE & IF & 0x1F;
-
-    if(isHalted) {
-        if (pending == 0) return 4;
-        isHalted = false;
-    }
-
-    if (ime && pending) return dispatchInterrupt(pending, IF);
-
-    if(enableIme) {
-        ime = true;
-        enableIme = false;
-    }
-
+int Cpu::executeInstruction(uint8_t pending) {  
     uint8_t opcode = fetch8();
 
     if (opcode == 0xCB) return executeCb(fetch8());
 
     if(opcode >= 0x40 && opcode <=0x7F) {
         if(opcode == 0x76) {
-            isHalted = true;
+            if (!ime && pending != 0) haltBug = true;
+            else isHalted = true;
             return 4;
         } else {
             uint8_t destination = (opcode >> 3) & 0b111;
@@ -827,6 +820,7 @@ int Cpu::step() {
         
         case 0xF3:
             ime = false;
+            enableIme = false;
             return 4;
         case 0xD9:
             pc = pop16();
@@ -839,6 +833,30 @@ int Cpu::step() {
             std::fprintf(stderr, "Unhandled opcode 0x%02X, at PC 0x%04X.\n", opcode, pc-1);
             return 0;
     }
+}
+
+int Cpu::step() {
+    uint8_t IF = bus.read(0xFF0F);
+    uint8_t IE = bus.read(0xFFFF);
+    uint8_t pending = IE & IF & 0x1F;
+
+    if(isHalted) {
+        if (pending == 0) return 4;
+        isHalted = false;
+    }
+
+    if (ime && pending) return dispatchInterrupt(pending, IF);
+
+    const bool enableWasPending = enableIme;
+
+    int cycles = executeInstruction(pending);
+
+    if (enableIme && enableWasPending) {
+        ime = true;
+        enableIme = false;
+    }
+
+    return cycles;
 }
 
 

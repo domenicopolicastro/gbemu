@@ -24,6 +24,7 @@ class Cpu {
         bool enableIme = false;
 
         bool isHalted = false;
+        bool haltBug = false;
 
         uint16_t getAF() const;
         uint16_t getBC() const;
@@ -75,6 +76,8 @@ class Cpu {
 
         int executeCb(uint8_t cbOpcode);
         int dispatchInterrupt(uint8_t pending, uint8_t IF);
+
+        int executeInstruction (uint8_t pending);
 
     public:
         Cpu(Bus& busData);
