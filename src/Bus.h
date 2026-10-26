@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Timer.h"
+#include "Ppu.h"
 
 class Bus {
     private:
@@ -20,6 +21,7 @@ class Bus {
         uint8_t serialData = 0;
 
         Timer timer{};
+        Ppu ppu{};
 
         std::string serialOutput;
 

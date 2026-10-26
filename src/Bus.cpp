@@ -51,6 +51,7 @@ void Bus::write(uint16_t address, uint8_t value){
 
 void Bus::tick(int cycles) {
     if (timer.tick(cycles)) interruptFlag |= 0b00000100;
+    if (ppu.tick(cycles)) interruptFlag |= 0b00000001;
 }
 
 const std::string& Bus::getSerialDataOutput() const {

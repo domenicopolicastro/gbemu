@@ -13,6 +13,7 @@ add_executable(gbemu
     src/Bus.cpp
     src/Cpu.cpp
     src/Timer.cpp
+    src/Ppu.cpp
 )
 
  add_executable(cpu_test
@@ -20,6 +21,7 @@ add_executable(gbemu
     src/Cpu.cpp
     src/Bus.cpp
     src/Timer.cpp
+    src/Ppu.cpp
 )
    
 target_link_libraries(gbemu PRIVATE SDL2::SDL2)
