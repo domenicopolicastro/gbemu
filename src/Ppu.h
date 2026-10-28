@@ -10,4 +10,6 @@ class Ppu {
         uint8_t lcdc = 0x91;
     public:
         bool tick(int cycles);
+        uint8_t read(uint16_t address) const;
+        void write(uint16_t address, uint8_t value);
 };
