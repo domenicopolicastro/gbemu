@@ -37,3 +37,25 @@ void Ppu::write(uint16_t address, uint8_t value) {
         break;
     }
 };
+
+uint8_t Ppu::decodeTilePixel(uint8_t lowByte, uint8_t highByte, uint8_t x) const {
+    uint8_t shift = 7 - x;
+    uint8_t lowBit = (lowByte >> shift) & 1;
+    uint8_t highBit = (highByte >> shift) & 1;
+    return (highBit << 1) + lowBit;
+}
+
+DecodedTile Ppu::decodedTile(const std::array<uint8_t, 16>& tileData) const {
+    DecodedTile decoded {};
+    uint8_t x = 0;
+    uint8_t row = 0;
+    for (int i = 0; i < tileData.size(); i=i+2) {
+        row = i / 2;
+        while (x < 8) {
+            decoded[row][x] = decodeTilePixel(tileData[i], tileData[i+1], x);
+            x++;
+        }
+        x = 0;
+    }
+    return decoded;
+}
