@@ -14,6 +14,9 @@ class Ppu {
         uint8_t lcdc = 0x91;
         std::array<std::array<uint8_t, 160>, 144> frameBuffer {};
 
+        uint8_t bgp = 0xFC; // Value after the boot
+        uint8_t backgroundShade (uint8_t colorId) const;
+
         uint8_t decodeTilePixel (uint8_t lowByte, uint8_t highByte, uint8_t x) const;
         DecodedTile decodedTile(const std::array<uint8_t, 16>& tileData) const;
 
