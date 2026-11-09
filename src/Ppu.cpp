@@ -78,3 +78,11 @@ DecodedTile Ppu::decodedTile(const std::array<uint8_t, 16>& tileData) const {
 uint8_t Ppu::backgroundShade (uint8_t colorId) const {
     return (bgp >> (colorId * 2) & 0b11);
 }
+
+void Ppu::drawBackgroundTile(const DecodedTile & tile, int screenX, int screenY) {
+    for (int y=0; y<8; y++) {
+        for (int x=0; x<8; x++) {
+            frameBuffer[screenY+y][screenX+x] = backgroundShade(tile[y][x]);
+        }
+    }
+}

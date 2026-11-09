@@ -20,6 +20,8 @@ class Ppu {
         uint8_t decodeTilePixel (uint8_t lowByte, uint8_t highByte, uint8_t x) const;
         DecodedTile decodedTile(const std::array<uint8_t, 16>& tileData) const;
 
+        void drawBackgroundTile(const DecodedTile & tile, int screenX, int screenY);
+
     public:
         bool tick(int cycles);
         uint8_t read(uint16_t address) const;
