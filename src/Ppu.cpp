@@ -86,3 +86,7 @@ void Ppu::drawBackgroundTile(const DecodedTile & tile, int screenX, int screenY)
         }
     }
 }
+
+const FrameBuffer& Ppu::getFrameBuffer() const{
+    return frameBuffer;
+}

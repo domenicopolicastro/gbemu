@@ -59,3 +59,7 @@ void Bus::tick(int cycles) {
 const std::string& Bus::getSerialDataOutput() const {
     return serialOutput;
 }
+
+const FrameBuffer& Bus::getFrameBuffer() const {
+    return ppu.getFrameBuffer();
+}

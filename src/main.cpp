@@ -67,13 +67,18 @@ int main(int argc, char* argv[]) {
         std::printf("SDL_Init error: %s\n", SDL_GetError());
         return 1;
     }
+
+    const auto& frame = bus.getFrameBuffer();
+    const int height = static_cast<int>(frame.size());
+    const int width = static_cast<int>(frame[0].size());
+    constexpr int scale = 4;
     
     SDL_Window* window = SDL_CreateWindow(
         "Game Boy Emulator",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        160 * 4,
-        144 * 4,
+        width * scale,
+        height * scale,
         0
     );
 
@@ -95,6 +100,7 @@ int main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
+
 
     bool running = true;
     while (running) {

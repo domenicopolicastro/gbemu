@@ -32,4 +32,5 @@ class Bus {
 
         void tick(int cycles);
         const std::string& getSerialDataOutput() const;
+        const FrameBuffer& getFrameBuffer() const;
 };

@@ -4,6 +4,7 @@
 #include <array>
 
 using DecodedTile = std::array<std::array<uint8_t, 8>, 8>;
+using FrameBuffer = std::array<std::array<uint8_t, 160>, 144>; 
 
 class Ppu {
     private:
@@ -12,7 +13,7 @@ class Ppu {
         // row 0 is the top, row 143 is the bottom
         uint8_t ly = 0;
         uint8_t lcdc = 0x91;
-        std::array<std::array<uint8_t, 160>, 144> frameBuffer {};
+        FrameBuffer frameBuffer {};
 
         uint8_t bgp = 0xFC; // Value after the boot
         uint8_t backgroundShade (uint8_t colorId) const;
@@ -22,8 +23,10 @@ class Ppu {
 
         void drawBackgroundTile(const DecodedTile & tile, int screenX, int screenY);
 
+
     public:
         bool tick(int cycles);
         uint8_t read(uint16_t address) const;
         void write(uint16_t address, uint8_t value);
+        const FrameBuffer& getFrameBuffer() const;
 };
